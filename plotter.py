@@ -10,8 +10,13 @@ log_format = '%(asctime)s|%(levelname)s| %(message)s'
 logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
 
 def create_dataframe():
-    df = pd.read_csv('planet_data.csv')
-    
+    df1 = pd.read_csv('planet_orbital_elements.csv')
+    df2 = pd.read_csv('planet_elements.csv')
+
+    df = df1.merge(df2, on='name')    
+    print(df.head())
+
+
     dataframes = []
     for _, row in df.iterrows():
         logging.info("Creating dataframe for Planet {}".format(row['name']))
@@ -39,6 +44,6 @@ def create_dataframe():
 if __name__ == '__main__':
     df = create_dataframe()
     fig = px.scatter(df, x="x", y="y", animation_frame="time", animation_group="Planet",
-           size="size", color="Planet", hover_name="Planet",
+           color="Planet", hover_name="Planet",
            size_max=55, template='plotly_dark', range_x=[-12, 12], range_y=[-12, 12], width=1000, height=1000)
     fig.show()
