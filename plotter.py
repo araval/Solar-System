@@ -27,18 +27,18 @@ def create_dataframe():
 
         df1 = pd.DataFrame(values_to_insert)
         df1['name'] = row['name']
-        df1['diameter_earths'] = row.diameter_earths
+        df1['size'] = row.diameter_earths/10.0
 
         dataframes.append(df1)
 
     df1 = pd.concat(dataframes)
-    df1.columns = ['time', 'x', 'y', 'Planet', 'diameter_earths']
+    df1.columns = ['time', 'x', 'y', 'Planet', 'size']
 
     return df1
 
 if __name__ == '__main__':
     df = create_dataframe()
     fig = px.scatter(df, x="x", y="y", animation_frame="time", animation_group="Planet",
-           size="diameter_earths", color="Planet", hover_name="Planet",
+           size="size", color="Planet", hover_name="Planet",
            size_max=55, template='plotly_dark', range_x=[-12, 12], range_y=[-12, 12], width=1000, height=1000)
     fig.show()
