@@ -14,36 +14,33 @@ def create_dataframe():
     df2 = pd.read_csv('planet_elements.csv')
 
     df = df1.merge(df2, on='name')    
-    print(df.head())
-
 
     dataframes = []
     for _, row in df.iterrows():
         logging.info("Creating dataframe for Planet {}".format(row['name']))
         planet = Planet(aphelion=row['aphelion_AU'], 
                         perihelion=row['perihelion_AU'], 
-                        diameter=row['diameter_earths'], 
+                        Omega = row['Omega_deg'],
+                        i = row['inclination_deg'],
+                        w = row['arg_periapsis_deg'],
                         orbital_velocity=row['orbital_velocity_kmps'])
     
         logging.info("Calculating coordinates")
-        x, y = planet.get_coordinates(time=10)
-        time = np.array([i for i in range(len(x))])
-        values_to_insert = [i for i in zip(time, x, y)]
+        planet_coordinates = planet.get_coordinates(time=10)
+        planet_coordinates['time'] = pd.Series([time for time in range(len(planet_coordinates))])
 
-        df1 = pd.DataFrame(values_to_insert)
-        df1['name'] = row['name']
-        df1['size'] = row.diameter_earths/10.0
+        planet_coordinates['Planet'] = row['name']
+        planet_coordinates['size'] = row.diameter_earths/10.0
 
-        dataframes.append(df1)
+        dataframes.append(planet_coordinates)
 
-    df1 = pd.concat(dataframes)
-    df1.columns = ['time', 'x', 'y', 'Planet', 'size']
+    all_planet_coordinates = pd.concat(dataframes)
 
-    return df1
+    return all_planet_coordinates
 
 if __name__ == '__main__':
-    df = create_dataframe()
-    fig = px.scatter(df, x="x", y="y", animation_frame="time", animation_group="Planet",
+    all_planet_coordinates = create_dataframe()
+    fig = px.scatter(all_planet_coordinates, x="x", y="y", animation_frame="time", animation_group="Planet",
            color="Planet", hover_name="Planet",
            size_max=55, template='plotly_dark', range_x=[-12, 12], range_y=[-12, 12], width=1000, height=1000)
     fig.show()

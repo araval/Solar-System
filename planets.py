@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from math import pi
+import pandas as pd
 
 import sys
 import logging
@@ -10,19 +11,22 @@ logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
 ASTRONOMICAL_UNIT = 1.495978707*10**11
 SECONDS_IN_A_YEAR = 365.25*86400
 
+radians = lambda theta_deg: theta_deg*pi/180
+
 class Planet(object):	
-    def __init__(self, aphelion, perihelion, orbital_velocity, diameter):
+    def __init__(self, aphelion, perihelion, Omega, w, i, orbital_velocity):
         """
         Parameters
         ----------
         aphelion: float (AU)
         perihelion: float (AU)
         orbital_velocity: float (km/s)
-        diameter: float (in earth-diameters)
         """
         self.aphelion = aphelion
         self.perihelion = perihelion
-        self.diameter = diameter
+        self.Omega = radians(Omega)
+        self.w = radians(w)
+        self.i = radians(i)
 
         # story orbital velocity in AU/earth_year
         self.orbital_velocity = orbital_velocity*1000/ASTRONOMICAL_UNIT*SECONDS_IN_A_YEAR
@@ -58,4 +62,24 @@ class Planet(object):
         t = np.linspace(0, angular_distance, n)
         x = self.a*np.sin(t)
         y = self.b*np.cos(t)
-        return x, y
+        z = np.zeros(len(x))
+
+        R = self.get_rotation_matrix(self.Omega, self.w, self.i)
+        ecliptic_position = []
+        for point in zip(x, y, z):
+            ecliptic_position.append(R.dot(point))
+
+        return pd.DataFrame(ecliptic_position, columns=['x', 'y', 'z'])
+
+    def get_rotation_matrix(self, Omega, w, i):
+
+        c = np.cos
+        s = np.sin        
+
+        R1 = np.array([[c(w), s(w), 0], [-1*s(w), c(w), 0], [0, 0, 1]])
+        R2 = np.array([[1, 0, 0],       [0, c(i), s(i)], [0, -1*s(i), c(i)]])
+        R3 = np.array([[c(Omega), s(Omega), 0], [-1*s(Omega), c(Omega), 0], [0, 0, 1]])
+
+        R = R1.dot(R2.dot(R3))
+
+        return R
