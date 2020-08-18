@@ -23,7 +23,7 @@ def create_dataframe():
                         Omega = row['Omega_deg'],
                         i = row['inclination_deg'],
                         w = row['arg_periapsis_deg'],
-                        orbital_velocity=row['orbital_velocity_kmps'])
+                        orbital_period=row['period_years'])
     
         logging.info("Calculating coordinates")
         planet_coordinates = planet.get_coordinates(time=10)

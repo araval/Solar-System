@@ -14,7 +14,7 @@ SECONDS_IN_A_YEAR = 365.25*86400
 radians = lambda theta_deg: theta_deg*pi/180
 
 class Planet(object):	
-    def __init__(self, aphelion, perihelion, Omega, w, i, orbital_velocity):
+    def __init__(self, aphelion, perihelion, Omega, w, i, orbital_period):
         """
         Parameters
         ----------
@@ -28,8 +28,7 @@ class Planet(object):
         self.w = radians(w)
         self.i = radians(i)
 
-        # story orbital velocity in AU/earth_year
-        self.orbital_velocity = orbital_velocity*1000/ASTRONOMICAL_UNIT*SECONDS_IN_A_YEAR
+        self.period = orbital_period
         self.set_ellipse_params()
         
     def set_ellipse_params(self):
@@ -42,19 +41,13 @@ class Planet(object):
     def get_coordinates(self, time=1.0):
         """
         Generate coordinates for the planet for a period of <time> earth years.
-        In its current state, this assumes that the inclination to ecliptic is 0 for all planets.
-        This also assumes all major axis are aligned, and that in the initial position, all planets
-        are collinear. This will be modified soon.
 
         Parameters
         ----------
         time (in earth years): float
         """
 
-        mean_radius = (self.a + self.b)/2  # AUs
-        angular_velocity = self.orbital_velocity/mean_radius # radians / earth-year
-        angular_distance = angular_velocity * time        
-        
+        angular_distance = 2*pi*time/self.period        
         logging.info("Angular distance traversed in {} Earth Years = {:.3f} radians".format(time, angular_distance)) 
 
         # Use the parametric equation of ellipse to generate x, y
