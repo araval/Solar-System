@@ -12,8 +12,8 @@ ASTRONOMICAL_UNIT = 1.495978707*10**11
 
 radians = lambda theta_deg: theta_deg*pi/180
 
-class Planet(object):	
-    def __init__(self, aphelion, perihelion, Omega, w, i, orbital_period):
+class Planet(object):
+    def __init__(self, aphelion, perihelion, Omega, w, i, orbital_period, time):
         """
         Parameters
         ----------
@@ -25,8 +25,11 @@ class Planet(object):
             argument of periapsis in degrees
         i: float
             inclination to ecliptic in degrees
-        orbital_period: float 
+        orbital_period: float
             time to traverse 2pi radians, in earth-years
+
+        time: float
+            number of years to generate coordinates for
         """
         self.aphelion = aphelion
         self.perihelion = perihelion
@@ -35,8 +38,9 @@ class Planet(object):
         self.i = radians(i)
 
         self.period = orbital_period
+        self.time = time
         self.set_ellipse_params()
-        
+
     def set_ellipse_params(self):
         logging.info("Calculating ellipse parameters")
         self.a = (self.aphelion + self.perihelion)/2  # semi-major axis
@@ -44,23 +48,23 @@ class Planet(object):
         self.b = np.sqrt(self.a**2 - self.c**2)       # semi-minor axis
         self.eccentricity = self.c/self.a
 
-    def get_coordinates(self, time=1.0):
+    def get_coordinates(self):
         """
         Generate coordinates for the planet for a period of <time> earth years.
 
-        Parameters
-        ----------
-        time (in earth years): float
         """
+        angular_distance = 2*pi*self.time/self.period
+        msg = "Angular distance traversed in {} Earth Years = {:.3f} radians"\
+                                            .format(self.time, angular_distance)
+        logging.info(msg)
 
-        angular_distance = 2*pi*time/self.period        
-        logging.info("Angular distance traversed in {} Earth Years = {:.3f} radians".format(time, angular_distance)) 
+        n = 50*self.time  # using 50 points per earth-year.
 
         # Use the parametric equation of ellipse to generate x, y
-        n = 50*time  # using 50 points per earth-year. Increasing this number results in very slow animation.
-        t = np.linspace(0, angular_distance, n)
-        x = self.a*np.sin(t)
-        y = self.b*np.cos(t)
+        # This is planet's orbit's frame of reference, hence z = 0
+        theta = np.linspace(0, angular_distance, n)
+        x = self.a*np.sin(theta)
+        y = self.b*np.cos(theta)
         z = np.zeros(len(x))
 
         R = self.get_rotation_matrix(self.Omega, self.w, self.i)
@@ -68,7 +72,8 @@ class Planet(object):
         for point in zip(x, y, z):
             ecliptic_position.append(R.dot(point))
 
-        return pd.DataFrame(ecliptic_position, columns=['x', 'y', 'z'])
+        ecliptic_coordinates = pd.DataFrame(ecliptic_position, columns=['x', 'y', 'z'])
+        return ecliptic_coordinates
 
     def get_rotation_matrix(self, Omega, w, i):
         """
@@ -80,7 +85,7 @@ class Planet(object):
         i: inclination to ecliptic
         """
         c = np.cos
-        s = np.sin        
+        s = np.sin
 
         R1 = np.array([[c(w), s(w), 0], [-1*s(w), c(w), 0], [0, 0, 1]])
         R2 = np.array([[1, 0, 0],       [0, c(i), s(i)], [0, -1*s(i), c(i)]])
