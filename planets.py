@@ -9,7 +9,6 @@ log_format = '%(asctime)s|%(levelname)s| %(message)s'
 logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
 
 ASTRONOMICAL_UNIT = 1.495978707*10**11
-SECONDS_IN_A_YEAR = 365.25*86400
 
 radians = lambda theta_deg: theta_deg*pi/180
 
@@ -18,9 +17,16 @@ class Planet(object):
         """
         Parameters
         ----------
-        aphelion: float (AU)
-        perihelion: float (AU)
-        orbital_velocity: float (km/s)
+        aphelion/perihelion: float
+            longest/shortest distance from the sun in Astronomical Units (AU)
+        Omega: float
+            longitude of the ascending node in degrees
+        w: float
+            argument of periapsis in degrees
+        i: float
+            inclination to ecliptic in degrees
+        orbital_period: float 
+            time to traverse 2pi radians, in earth-years
         """
         self.aphelion = aphelion
         self.perihelion = perihelion
@@ -65,7 +71,14 @@ class Planet(object):
         return pd.DataFrame(ecliptic_position, columns=['x', 'y', 'z'])
 
     def get_rotation_matrix(self, Omega, w, i):
+        """
+        Returns transformation matrix for coordinate transform from the planet's xy plane to the ecliptic
 
+        Arguments are the standard orbital elements in radians:
+        Omega: longitude of the ascending node
+        w: argument of periapsis
+        i: inclination to ecliptic
+        """
         c = np.cos
         s = np.sin        
 
