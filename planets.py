@@ -53,13 +53,12 @@ class Planet(object):
         Generate coordinates for the planet for a period of <time> earth years.
 
         """
-        num_revolutions = self.time/self.period
-        angular_distance = 2*pi*num_revolutions
+        angular_distance = 2*pi*self.time/self.period
         msg = "Angular distance traversed in {} Earth Years = {:.3f} radians"\
                                             .format(self.time, angular_distance)
         logging.info(msg)
 
-        n = int(50*num_revolutions) + 1  # we will generate 50 points per revolution 
+        n = 50*self.time  # using 50 points per earth-year.
 
         # Use the parametric equation of ellipse to generate x, y
         # This is planet's orbit's frame of reference, hence z = 0
