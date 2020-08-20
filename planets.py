@@ -15,6 +15,12 @@ radians = lambda theta_deg: theta_deg*pi/180
 class Planet(object):
     def __init__(self, aphelion, perihelion, Omega, w, i, orbital_period, time):
         """
+        This class approximates the position of the planets. While the orbits are
+        exactly what they should be, there are two issues that need to be addressed:
+        1. the motion around the sun is uniform
+        2. the relative positions of the planets are random, and not what they actually
+           should be.
+
         Parameters
         ----------
         aphelion/perihelion: float
